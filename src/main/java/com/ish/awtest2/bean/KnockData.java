@@ -1,0 +1,163 @@
+package com.ish.awtest2.bean;
+
+import org.litepal.crud.DataSupport;
+
+/**
+ * Created by ish on 2018/1/25.
+ */
+
+public class KnockData extends DataSupport {
+    private double dimension1;
+    private double dimension2;
+    private double dimension3;
+    private double dimension4;
+    private double dimension5;
+    private double dimension6;
+    private double dimension7;
+    private double dimension8;
+    private double dimension9;
+    private double dimension10;
+    private double dimension11;
+    private double dimension12;
+    private double dimension13;
+    private double dimension14;
+    private double dimension15;
+    private double dimension16;
+    private double dimension17;
+    private double dimension18;
+    private double dimension19;
+    private double dimension20;
+    private double dimension21;
+    private double dimension22;
+    private double dimension23;
+    private double dimension24;
+    private double dimension25;
+    private double dimension26;
+    private double dimension27;
+    private double dimension28;
+    private double dimension29;
+    private double dimension30;
+    private double dimension31;
+    private double dimension32;
+    private double dimension33;
+    private double dimension34;
+    private double dimension35;
+    private double dimension36;
+    private double dimension37;
+    private double dimension38;
+    private double dimension39;
+    private double dimension40;
+    private double dimension41;
+    private double dimension42;
+    private double dimension43;
+    private double dimension44;
+    private double dimension45;
+    private double dimension46;
+    private double dimension47;
+    private double dimension48;
+
+    public void initialData(Double[] data){
+        dimension1 = data[0];
+        dimension2 = data[1];
+        dimension3 = data[2];
+        dimension4 = data[3];
+        dimension5 = data[4];
+        dimension6 = data[5];
+        dimension7 = data[6];
+        dimension8 = data[7];
+        dimension9 = data[8];
+        dimension10 = data[9];
+        dimension11 = data[10];
+        dimension12 = data[11];
+        dimension13 = data[12];
+        dimension14 = data[13];
+        dimension15 = data[14];
+        dimension16 = data[15];
+        dimension17 = data[16];
+        dimension18 = data[17];
+        dimension19 = data[18];
+        dimension20 = data[19];
+        dimension21 = data[20];
+        dimension22 = data[21];
+        dimension23 = data[22];
+        dimension24 = data[23];
+        dimension25 = data[24];
+        dimension26 = data[25];
+        dimension27 = data[26];
+        dimension28 = data[27];
+        dimension29 = data[28];
+        dimension30 = data[29];
+        dimension31 = data[30];
+        dimension32 = data[31];
+        dimension33 = data[32];
+        dimension34 = data[33];
+        dimension35 = data[34];
+        dimension36 = data[35];
+        dimension37 = data[36];
+        dimension38 = data[37];
+        dimension39 = data[38];
+        dimension40 = data[39];
+        dimension41 = data[40];
+        dimension42 = data[41];
+        dimension43 = data[42];
+        dimension44 = data[43];
+        dimension45 = data[44];
+        dimension46 = data[45];
+        dimension47 = data[46];
+        dimension48 = data[47];
+    }
+
+    public Double[]getAllData(){
+        Double[] outData = new Double[48];
+        outData[0] = dimension1 ;
+        outData[1] = dimension2 ;
+        outData[2] = dimension3 ;
+        outData[3] = dimension4 ;
+        outData[4] = dimension5 ;
+        outData[5] = dimension6 ;
+        outData[6] = dimension7 ;
+        outData[7] = dimension8 ;
+        outData[8] = dimension9 ;
+        outData[9] = dimension10 ;
+        outData[10] = dimension11 ;
+        outData[11] = dimension12 ;
+        outData[12] = dimension13 ;
+        outData[13] = dimension14 ;
+        outData[14] = dimension15 ;
+        outData[15] = dimension16 ;
+        outData[16] = dimension17 ;
+        outData[17] = dimension18 ;
+        outData[18] = dimension19 ;
+        outData[19] = dimension20 ;
+        outData[20] = dimension21 ;
+        outData[21] = dimension22 ;
+        outData[22] = dimension23 ;
+        outData[23] = dimension24 ;
+        outData[24] = dimension25 ;
+        outData[25] = dimension26 ;
+        outData[26] = dimension27 ;
+        outData[27] = dimension28 ;
+        outData[28] = dimension29 ;
+        outData[29] = dimension30 ;
+        outData[30] = dimension31 ;
+        outData[31] = dimension32 ;
+        outData[32] = dimension33 ;
+        outData[33] = dimension34 ;
+        outData[34] = dimension35 ;
+        outData[35] = dimension36 ;
+        outData[36] = dimension37 ;
+        outData[37] = dimension38 ;
+        outData[38] = dimension39 ;
+        outData[39] = dimension40 ;
+        outData[40] = dimension41 ;
+        outData[41] = dimension42 ;
+        outData[42] = dimension43 ;
+        outData[43] = dimension44 ;
+        outData[44] = dimension45 ;
+        outData[45] = dimension46 ;
+        outData[46] = dimension47 ;
+        outData[47] = dimension48 ;
+        return outData;
+    }
+
+}
