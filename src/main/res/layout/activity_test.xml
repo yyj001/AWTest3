@@ -1,46 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.wearable.view.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/white"
     android:padding="@dimen/box_inset_layout_padding"
     tools:context="com.ish.awtest2.TestActivity"
     tools:deviceIds="wear">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="@dimen/inner_frame_layout_padding"
         app:layout_box="all">
 
-    <TextView
-        android:id="@+id/test_text_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:text="计数0"
-        android:textColor="@color/black"
-        android:textSize="25sp" />
-
-    <TextView
-        android:id="@+id/test_text"
-        android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:layout_below="@+id/test_text_count"
-        android:layout_centerHorizontal="true"
-        android:text="加速度"
-        android:textColor="@color/black"
-        android:textSize="20sp" />
-
-
-        <Button
-            android:id="@+id/test_btn"
+        <TextView
+            android:id="@+id/test_text_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/test_text"
             android:layout_centerHorizontal="true"
-            android:text="开始测试" />
+            android:text=""
+            android:layout_below="@+id/framelayout_test"
+            android:textColor="@color/black"
+            android:textSize="17sp"
+            android:layout_margin="0dp"/>
+
+        <!--<TextView-->
+            <!--android:id="@+id/test_text"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="30dp"-->
+            <!--android:layout_below="@+id/test_text_count"-->
+            <!--android:layout_centerHorizontal="true"-->
+            <!--android:text="加速度"-->
+            <!--android:textColor="@color/black"-->
+            <!--android:textSize="20sp" />-->
+
+
+        <FrameLayout
+            android:id="@+id/framelayout_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_margin="0dp"
+            android:padding="0dp">
+
+            <com.ish.awtest2.mview.TickView
+                android:id="@+id/tick_view_test"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:rate="fast" />
+
+            <Button
+                android:id="@+id/test_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/test_text"
+                android:layout_centerHorizontal="true"
+                android:text="START"
+                android:layout_marginTop="20dp"/>
+        </FrameLayout>
 
     </RelativeLayout>
 

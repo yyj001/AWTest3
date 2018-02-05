@@ -13,6 +13,8 @@ import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +26,7 @@ import com.ish.awtest2.func.GCC;
 import com.ish.awtest2.func.IIRFilter;
 import com.ish.awtest2.func.LimitQueue;
 import com.ish.awtest2.func.Trainer;
+import com.ish.awtest2.mview.TickView;
 
 import org.litepal.crud.DataSupport;
 import org.litepal.tablemanager.Connector;
@@ -35,7 +38,7 @@ import java.util.List;
  */
 public class TestActivity extends WearableActivity implements SensorEventListener {
 
-    private TextView mTextView;
+    //private TextView mTextView;
     private TextView mTextViewCount;
     private Button btn;
 
@@ -103,12 +106,24 @@ public class TestActivity extends WearableActivity implements SensorEventListene
     private String s = "";
     FFT fft = new FFT();
 
+    //
+    TickView tickView;
+    //动画
+    Animation disappearAnimation;
+
     Handler handler = new Handler();
     Runnable runnable = new Runnable() {
         @Override
         public void run() {
             recLen++;
-            mTextViewCount.setText("" + recLen);
+            if(recLen==0){
+                mTextViewCount.setText("READY");
+            }else if(recLen==1){
+                mTextViewCount.setText("GO");
+
+            }else if(recLen>2){
+                mTextViewCount.setText("TAP YOUR HAND");
+            }
             handler.postDelayed(this, 2000);
         }
     };
@@ -123,8 +138,27 @@ public class TestActivity extends WearableActivity implements SensorEventListene
     }
 
     public void iniView() {
+        tickView = (TickView)findViewById(R.id.tick_view_test);
+
+        //慢慢消失动画
+        disappearAnimation = new AlphaAnimation(1, 0);
+        disappearAnimation.setDuration(500);
+
+        disappearAnimation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {}
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                //tickView.setVisibility(View.GONE);
+                tickView.setChecked(false);
+            }
+        });
+
+
         btn = (Button) findViewById(R.id.test_btn);
-        mTextView = (TextView) findViewById(R.id.test_text);
+        //mTextView = (TextView) findViewById(R.id.test_text);
         mTextViewCount = (TextView) findViewById(R.id.test_text_count);
         //初始化第一个来对齐
         Double[] firstData = DataSupport.findFirst(KnockData.class).getAllData();
@@ -140,12 +174,15 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                     s = "";
                     handler.removeCallbacks(runnable);
                     mTextViewCount.setText("0");
-                    btn.setText("开始");
+                    btn.setText("START");
                 } else {
                     handler.postDelayed(runnable, 1000);
                     recLen = -1;
                     flag = true;
-                    btn.setText("停止");
+                    btn.setText("STOP");
+                    btn.setAlpha(0);
+                    tickView.setType(TickView.TYPE_ERROR);
+                    tickView.setChecked(true);
                 }
             }
         });
@@ -172,7 +209,7 @@ public class TestActivity extends WearableActivity implements SensorEventListene
             preValue = z;
             queue.offer(z);
             count++;
-            mTextView.setText(z + "");
+            //mTextView.setText(z + "");
             //判断是否存了200个点
             if (!ifStart) {
                 if (count == limit) {
@@ -182,7 +219,7 @@ public class TestActivity extends WearableActivity implements SensorEventListene
             //等待敲击
             else {
                 //遇到敲击
-                if (zChange > deviation && !ifStart2) {
+                if (zChange > deviation && !ifStart2&&count>210) {
                     ifStart2 = true;
                     count = 0;
                 }
@@ -224,11 +261,29 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                     double newDis = Trainer.getNewDis(trainData, finalData);
                     Log.d(TAG, "onSensorChanged: " + newDis);
                     if (threshold >= newDis) {
-                        Toast.makeText(TestActivity.this, "解锁成功", Toast.LENGTH_SHORT).show();
+                        tickView.setType(TickView.TYPE_SUCCESS);
+                        tickView.setChecked(true);
+                        mTextViewCount.setText("SUCESSED");
+                        recLen = 2;
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                tickView.startAnimation(disappearAnimation);
+                            }
+                        },1500);
+                        //Toast.makeText(TestActivity.this, "解锁成功", Toast.LENGTH_SHORT).show();
                         //Log.d(TAG, "onSensorChanged: 解锁成功");
                     } else {
-                        Toast.makeText(TestActivity.this, "解锁失败", Toast.LENGTH_SHORT).show();
-                        //Log.d(TAG, "onSensorChanged: 解锁失败");
+                        tickView.setType(TickView.TYPE_ERROR);
+                        tickView.setChecked(true);
+                        mTextViewCount.setText("TRY AGAIN");
+                        recLen = 2;
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                tickView.startAnimation(disappearAnimation);
+                            }
+                        },1500);
                     }
 
 //                        }

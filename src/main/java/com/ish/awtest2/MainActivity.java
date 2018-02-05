@@ -31,9 +31,9 @@ import com.ish.awtest2.func.Trainer;
 import org.litepal.crud.DataSupport;
 import org.litepal.tablemanager.Connector;
 
+import java.time.chrono.MinguoChronology;
 import java.util.List;
 
-import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class MainActivity extends WearableActivity implements SensorEventListener {
 
@@ -304,10 +304,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         btn6.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new SweetAlertDialog(MainActivity.this, SweetAlertDialog.SUCCESS_TYPE)
-                        .setTitleText("Good job!")
-                        .setContentText("You clicked the button!")
-                        .show();
+                startActivity(new Intent(MainActivity.this, Main2Activity.class));
             }
         });
     }
