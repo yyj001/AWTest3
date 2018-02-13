@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.wearable.activity.WearableActivity;
@@ -16,6 +17,7 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +34,8 @@ import org.litepal.crud.DataSupport;
 import org.litepal.tablemanager.Connector;
 
 import java.util.List;
+
+import static android.view.View.GONE;
 
 /**
  * @author ish
@@ -107,7 +111,8 @@ public class TestActivity extends WearableActivity implements SensorEventListene
     FFT fft = new FFT();
 
     //
-    TickView tickView;
+    private TickView tickView;
+    private ImageView fingerImage;
     //动画
     Animation disappearAnimation;
 
@@ -116,11 +121,8 @@ public class TestActivity extends WearableActivity implements SensorEventListene
         @Override
         public void run() {
             recLen++;
-            if(recLen==0){
+            if(recLen==1) {
                 mTextViewCount.setText("READY");
-            }else if(recLen==1){
-                mTextViewCount.setText("GO");
-
             }else if(recLen>2){
                 mTextViewCount.setText("TAP YOUR HAND");
             }
@@ -139,6 +141,7 @@ public class TestActivity extends WearableActivity implements SensorEventListene
 
     public void iniView() {
         tickView = (TickView)findViewById(R.id.tick_view_test);
+        fingerImage = (ImageView)findViewById(R.id.finger_image);
 
         //慢慢消失动画
         disappearAnimation = new AlphaAnimation(1, 0);
@@ -153,6 +156,8 @@ public class TestActivity extends WearableActivity implements SensorEventListene
             public void onAnimationEnd(Animation animation) {
                 //tickView.setVisibility(View.GONE);
                 tickView.setChecked(false);
+                tickView.setAlpha(0);
+                fingerImage.setVisibility(View.VISIBLE);
             }
         });
 
@@ -176,13 +181,15 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                     mTextViewCount.setText("0");
                     btn.setText("START");
                 } else {
+                    fingerImage.setVisibility(View.VISIBLE);
                     handler.postDelayed(runnable, 1000);
-                    recLen = -1;
+                    recLen = 0;
                     flag = true;
                     btn.setText("STOP");
                     btn.setAlpha(0);
                     tickView.setType(TickView.TYPE_ERROR);
                     tickView.setChecked(true);
+                    btn.setClickable(false);
                 }
             }
         });
@@ -260,6 +267,9 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                     //将新的敲击数据加入对比
                     double newDis = Trainer.getNewDis(trainData, finalData);
                     Log.d(TAG, "onSensorChanged: " + newDis);
+                    //隐藏手指，显示动画
+                    fingerImage.setVisibility(GONE);
+                    tickView.setAlpha(1);
                     if (threshold >= newDis) {
                         tickView.setType(TickView.TYPE_SUCCESS);
                         tickView.setChecked(true);
@@ -271,8 +281,6 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                                 tickView.startAnimation(disappearAnimation);
                             }
                         },1500);
-                        //Toast.makeText(TestActivity.this, "解锁成功", Toast.LENGTH_SHORT).show();
-                        //Log.d(TAG, "onSensorChanged: 解锁成功");
                     } else {
                         tickView.setType(TickView.TYPE_ERROR);
                         tickView.setChecked(true);

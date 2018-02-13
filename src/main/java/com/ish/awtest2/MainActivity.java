@@ -173,11 +173,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 //                            s = "";
                             data = IIRFilter.highpass(data);
                             data = IIRFilter.lowpass(data);
-//                            for(int i=0;i<limit;i++){
-//                                s+=","+data[i];
-//                            }
-//                            Log.d(TAG, ","+s);
-//                            s = "";
+                            for(int i=0;i<limit;i++){
+                                s+=","+data[i];
+                            }
+                            Log.d(TAG, "after filter,"+s);
+                            s = "";
                             FFT fft = new FFT();
                             Double[] cutData = Cut.cutMoutain(data, 50);
                             //如果是第一个敲击，记录下来，后面的敲击gcc以它对齐
