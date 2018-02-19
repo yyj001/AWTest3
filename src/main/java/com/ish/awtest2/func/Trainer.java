@@ -53,7 +53,7 @@ public class Trainer {
             }
             testDis[k] = calDis(trainSet, testData, weight);
         }
-        Double distance = mean(testDis);
+        Double distance = MyMath.mean(testDis);
         return distance;
     }
 
@@ -118,17 +118,13 @@ public class Trainer {
                 newData[j] = trainSet[j][i];
             }
             newData[j] = testRow[i];
-            temp[i] = mean(pdis(newData));
+            temp[i] = MyMath.mean(pdis(newData));
         }
         //temp 35列乘权重
         for (int i = 0; i < feature_dim; i++) {
             temp[i] = temp[i] * weight[i];
         }
-        return mean(temp);
-    }
-
-    public static Double mean(Double[] array) {
-        return sum(array) / array.length;
+        return MyMath.mean(temp);
     }
 
     public static Double[] calPower(Double[][] trainData) {
@@ -142,7 +138,7 @@ public class Trainer {
             for (int j = 0; j < rowSize; j++) {
                 data[j] = trainData[j][i];
             }
-            d[i] = sum(pdis(data));
+            d[i] = MyMath.sum(pdis(data));
         }
         //get max element
         Double max = 0.0;
@@ -164,14 +160,6 @@ public class Trainer {
         return d;
     }
 
-    public static Double sum(Double[] array) {
-        Double s = 0.0;
-        for (int i = 0; i < array.length; i++) {
-            s += array[i];
-        }
-        return s;
-    }
-
     public static Double[] pdis(Double[] data) {
         int num = data.length * (data.length - 1) / 2;
         ArrayList<Double> outputArray = new ArrayList<Double>();
@@ -182,15 +170,5 @@ public class Trainer {
         }
         Double[] output = (Double[]) outputArray.toArray(new Double[num]);
         return output;
-    }
-
-    public static Double findAbsMax(Double[] array){
-        Double max= 0.0;
-        for(int i=0;i<array.length;i++){
-            if(Math.abs(array[i])>max){
-                max = array[i];
-            }
-        }
-        return max;
     }
 }

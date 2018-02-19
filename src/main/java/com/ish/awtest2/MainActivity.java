@@ -1,5 +1,7 @@
 package com.ish.awtest2;
 
+import android.app.Service;
+import android.bluetooth.BluetoothClass;
 import android.content.Context;
 //import android.content.Intent;
 //import android.content.SharedPreferences;
@@ -10,8 +12,15 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.View;
@@ -33,6 +42,8 @@ import org.litepal.tablemanager.Connector;
 
 import java.time.chrono.MinguoChronology;
 import java.util.List;
+
+import static android.media.AudioRecord.READ_NON_BLOCKING;
 
 
 public class MainActivity extends WearableActivity implements SensorEventListener {
@@ -102,6 +113,25 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private static final String TAG = "sensor";
     private int colNum = 3400;
     private String s = "";
+    /**
+     * 音频数据
+     */
+    private int frequency = 11025;
+    private int channelConfiguration = AudioFormat.CHANNEL_IN_MONO;
+    private int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
+    private int bufferSize = AudioRecord.getMinBufferSize(frequency, channelConfiguration, audioEncoding) * 20;
+    private short[] rawAudioData = new short[bufferSize];
+    private AudioRecord audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
+            frequency, channelConfiguration, audioEncoding, bufferSize);
+    //如果不每隔一秒就把音频保存一下就会有问题
+    private Runnable audioRunnable = new Runnable() {
+        @RequiresApi(api = Build.VERSION_CODES.M)
+        @Override
+        public void run() {
+            int bufferResultLength = audioRecord.read(rawAudioData, 0, bufferSize, READ_NON_BLOCKING);
+            handler.postDelayed(this, 1000);
+        }
+    };
 
     //按钮判断开始
 
@@ -121,6 +151,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{android
+                .Manifest.permission.RECORD_AUDIO}, 1);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         iniView();
@@ -151,6 +183,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     ifStart2 = true;
                     count = 0;
                     knockCount++;
+//                    saveRawAudioData();
+//                    Log.d(TAG, "click click click");
                 }
             }
             //开始左移100个点
@@ -173,23 +207,21 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 //                            s = "";
                             data = IIRFilter.highpass(data);
                             data = IIRFilter.lowpass(data);
-                            for(int i=0;i<limit;i++){
-                                s+=","+data[i];
-                            }
-                            Log.d(TAG, "after filter,"+s);
-                            s = "";
-                            FFT fft = new FFT();
-                            Double[] cutData = Cut.cutMoutain(data, 50);
+//                            for(int i=0;i<limit;i++){
+//                                s+=","+data[i];
+//                            }
+//                            Log.d(TAG, "after filter,"+s);
+//                            s = "";
+                            Double[] cutData = Cut.cutMoutain(data, 50, 40, 18,0.08);
                             //如果是第一个敲击，记录下来，后面的敲击gcc以它对齐
                             if (knockCount == 1) {
                                 System.arraycopy(cutData, 10, firstKnock, 0, ampLength);
-
-                                Double[] fftData = fft.getHalfFFTData(firstKnock);
+                                Double[] fftData = FFT.getHalfFFTData(firstKnock);
                                 System.arraycopy(firstKnock, 0, finalData, 0, ampLength);
                                 System.arraycopy(fftData, 0, finalData, ampLength, finalLength - ampLength);
                             } else {
                                 Double[] gccData = GCC.gcc(firstKnock, cutData);
-                                Double[] fftData = fft.getHalfFFTData(gccData);
+                                Double[] fftData = FFT.getHalfFFTData(gccData);
                                 System.arraycopy(gccData, 0, finalData, 0, ampLength);
                                 System.arraycopy(fftData, 0, finalData, ampLength, finalLength - ampLength);
                             }
@@ -253,6 +285,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             public void onClick(View v) {
                 //停止
                 if (flag) {
+                    //关闭录音
+                    handler.removeCallbacks(audioRunnable);
+                    audioRecord.stop();
+
                     ifStart = false;
                     flag = false;
                     count = 0;
@@ -261,7 +297,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     mTextViewCount.setText("0");
                     btn.setText("开始");
                 } else {
-                    handler.postDelayed(runnable, 1000);
+                    //开启录音
+                    audioRecord.startRecording();
+                    handler.postDelayed(audioRunnable, 1);
+                    //倒计时
+                    handler.postDelayed(runnable, 200);
                     recLen = -1;
                     flag = true;
                     btn.setText("停止");
@@ -309,21 +349,25 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         });
     }
 
+    public void saveRawAudioData() {
+        int bufferResultLength = audioRecord.read(rawAudioData, 0, bufferSize);
+        Log.d(TAG, "onClick: " + bufferResultLength);
+        int temp = bufferResultLength / 40;
+        for (int i = 0; i < 40; i++) {
+            for (int j = 0; j < temp; j++) {
+                s = s + "," + rawAudioData[j + temp * i];
+            }
+            Log.d(TAG, "radio: " + s);
+            s = "";
+        }
+    }
+
     @Override
     public void onPause() {
         sm.unregisterListener(this);
+        handler.removeCallbacks(audioRunnable);
+        handler.removeCallbacks(runnable);
+        audioRecord.stop();
         super.onPause();
-    }
-
-    public static String formatFloatNumber(Double value) {
-        if (value != null) {
-            if (value.doubleValue() != 0.00) {
-                java.text.DecimalFormat df = new java.text.DecimalFormat("#######0.0000000000000");
-                return df.format(value.doubleValue());
-            } else {
-                return "0.00";
-            }
-        }
-        return "";
     }
 }

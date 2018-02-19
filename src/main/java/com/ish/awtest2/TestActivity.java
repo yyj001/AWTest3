@@ -1,5 +1,6 @@
 package com.ish.awtest2;
 
+import android.app.Service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
@@ -10,6 +11,7 @@ import android.hardware.SensorManager;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.View;
@@ -42,9 +44,9 @@ import static android.view.View.GONE;
  */
 public class TestActivity extends WearableActivity implements SensorEventListener {
 
-    //private TextView mTextView;
     private TextView mTextViewCount;
     private Button btn;
+    private Vibrator mVibrator;
 
     private SensorManager sm;
     private double preValue = 0;
@@ -108,8 +110,6 @@ public class TestActivity extends WearableActivity implements SensorEventListene
     Double[][] trainData;
     private static final String TAG = "sensorTest";
     private String s = "";
-    FFT fft = new FFT();
-
     //
     private TickView tickView;
     private ImageView fingerImage;
@@ -142,6 +142,7 @@ public class TestActivity extends WearableActivity implements SensorEventListene
     public void iniView() {
         tickView = (TickView)findViewById(R.id.tick_view_test);
         fingerImage = (ImageView)findViewById(R.id.finger_image);
+        mVibrator = (Vibrator) getApplication().getSystemService(Service.VIBRATOR_SERVICE);
 
         //慢慢消失动画
         disappearAnimation = new AlphaAnimation(1, 0);
@@ -163,7 +164,6 @@ public class TestActivity extends WearableActivity implements SensorEventListene
 
 
         btn = (Button) findViewById(R.id.test_btn);
-        //mTextView = (TextView) findViewById(R.id.test_text);
         mTextViewCount = (TextView) findViewById(R.id.test_text_count);
         //初始化第一个来对齐
         Double[] firstData = DataSupport.findFirst(KnockData.class).getAllData();
@@ -256,7 +256,7 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                     Double[] gccData = GCC.gcc(firstKnock, cutData);
 
                     //加上fft的
-                    Double[] fftData = fft.getHalfFFTData(gccData);
+                    Double[] fftData = FFT.getHalfFFTData(gccData);
                     System.arraycopy(gccData, 0, finalData, 0, ampLength);
                     System.arraycopy(fftData, 0, finalData, ampLength, finalLength - ampLength);
                     for (int i = 0; i < finalData.length; i++) {
@@ -270,6 +270,7 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                     //隐藏手指，显示动画
                     fingerImage.setVisibility(GONE);
                     tickView.setAlpha(1);
+                    //失败
                     if (threshold >= newDis) {
                         tickView.setType(TickView.TYPE_SUCCESS);
                         tickView.setChecked(true);
@@ -293,9 +294,6 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                             }
                         },1500);
                     }
-
-//                        }
-//                    }).start();
                     flag = true;
                 }
             }
@@ -324,17 +322,4 @@ public class TestActivity extends WearableActivity implements SensorEventListene
         sm.unregisterListener(this);
         super.onPause();
     }
-
-    public static String formatFloatNumber(Double value) {
-        if (value != null) {
-            if (value.doubleValue() != 0.00) {
-                java.text.DecimalFormat df = new java.text.DecimalFormat("#######0.0000000000000");
-                return df.format(value.doubleValue());
-            } else {
-                return "0.00";
-            }
-        }
-        return "";
-    }
-
 }

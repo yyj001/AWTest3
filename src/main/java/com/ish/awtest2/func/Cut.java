@@ -1,7 +1,4 @@
 package com.ish.awtest2.func;
-
-import android.util.Log;
-
 /**
  * Created by ish on 2018/1/24.
  */
@@ -19,18 +16,25 @@ public class Cut {
     /**
      *
      * @param signal 信号
-     * @param size 返回长度
+     * @param finalSize 返回长度
+     * @param sPos 开始遍历的位置
+     * @param sNumber 找到峰后在前面补的长度
+     * @param d 变化量阈值，用来判断峰
      * @return 返回50个长度
      */
-    public static Double[] cutMoutain(Double[] signal,int size){
-        result = new Double[size];
-        for(int i=startPoint;i<signal.length-size;i++){
-            if(Math.abs(signal[i])>deviation2 && Math.abs(signal[i]-signal[i-1])>deviation){
+    public static Double[] cutMoutain(Double[] signal,int finalSize,int sPos,int sNumber,double d){
+        startPoint = sPos;
+        spaceNumber = sNumber;
+        deviation = d;
+        result = new Double[finalSize];
+        for(int i=startPoint;i<signal.length-finalSize;i++){
+            //if(Math.abs(signal[i])>deviation2 && Math.abs(signal[i]-signal[i-1])>deviation){
+            if(Math.abs(signal[i]-signal[i-1])>deviation){
                 startPoint = i;
                 break;
             }
         }
-        System.arraycopy(signal, startPoint-spaceNumber, result, 0, size);
+        System.arraycopy(signal, startPoint-spaceNumber, result, 0, finalSize);
         return result;
     }
 }

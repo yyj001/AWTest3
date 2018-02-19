@@ -26,10 +26,10 @@ public class FFT {
 
         return a;
     }
-    /*
+    /**
     *乘积因子
     **/
-    public Complex complex_exp(Complex z){
+    public static Complex complex_exp(Complex z){
         Complex r=new Complex();
         double expx=Math.exp(z.r);
         r.r=expx*Math.cos(z.i);
@@ -37,11 +37,11 @@ public class FFT {
         return r;
     }
 
-    /*
+    /**
     *基-2 fft蝶形变换
     *fft_tepy=1正变换, -1反变换
     **/
-    public Complex[] fft_2(Complex[] a,int length,int fft_tepy){
+    public static Complex[] fft_2(Complex[] a,int length,int fft_tepy){
         double pisign=fft_tepy*Math.PI;
         // System.out.print(" pisign:"+pisign+"\n");
         Complex t=new Complex();
@@ -76,11 +76,11 @@ public class FFT {
     }
 
     /**
-     * Double数组直接得到fft结果，返回Double数组
+     * Double数组直接得到fft结果，返回Double数组，长度为2的幂
      * @param signal
      * @return
      */
-    public Double[] getHalfFFTData(Double[] signal){
+    public static Double[] getHalfFFTData(Double[] signal){
         int column = signal.length/2;
         Double[] output = new Double[column];
         //转复数
@@ -96,7 +96,7 @@ public class FFT {
             output[i] = temp[i].getAbs();
         }
         //找最大归一化
-        Double max = Trainer.findAbsMax(output);
+        Double max = MyMath.findAbsMax(output);
         for(int i=0;i<column;i++){
             output[i] = output[i]/max;
         }

@@ -36,7 +36,6 @@
             <!--android:textColor="@color/black"-->
             <!--android:textSize="20sp" />-->
 
-
         <FrameLayout
             android:id="@+id/framelayout_test"
             android:layout_width="wrap_content"
