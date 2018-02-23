@@ -243,14 +243,15 @@ public class TestActivity extends WearableActivity implements SensorEventListene
 //                    new Thread(new Runnable() {
 //                        @Override
 //                        public void run() {
-                    data = IIRFilter.highpass(data);
-                    data = IIRFilter.lowpass(data);
+                    data = IIRFilter.highpass(data,IIRFilter.TYPE_AMPITUDE);
+                    data = IIRFilter.lowpass(data,IIRFilter.TYPE_AMPITUDE);
 //                    for (int i = 0; i < data.length; i++) {
 //                        s = s + "," + data[i];
 //                    }
 //                    Log.d(TAG, "onSensorChanged: Data" + s);
 //                    s = "";
 //                    Double[] cutData = Cut.cutMoutain(data, 50);
+
                     Double[] cutData  = new Double[160];
                     System.arraycopy(data,40,cutData,0,160);
                     Double[] gccData = GCC.gcc(firstKnock, cutData);

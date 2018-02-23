@@ -28,8 +28,8 @@ public class Cut {
         deviation = d;
         result = new Double[finalSize];
         for(int i=startPoint;i<signal.length-finalSize;i++){
-            //if(Math.abs(signal[i])>deviation2 && Math.abs(signal[i]-signal[i-1])>deviation){
-            if(Math.abs(signal[i]-signal[i-1])>deviation){
+            if(Math.abs(signal[i])>deviation2 && Math.abs(signal[i]-signal[i-1])>deviation){
+//            if(Math.abs(signal[i]-signal[i-1])>deviation){
                 startPoint = i;
                 break;
             }

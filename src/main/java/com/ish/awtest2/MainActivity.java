@@ -205,8 +205,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 //                            }
 //                            Log.d(TAG, ","+s);
 //                            s = "";
-                            data = IIRFilter.highpass(data);
-                            data = IIRFilter.lowpass(data);
+                            data = IIRFilter.highpass(data,IIRFilter.TYPE_AMPITUDE);
+                            data = IIRFilter.lowpass(data,IIRFilter.TYPE_AMPITUDE);
 //                            for(int i=0;i<limit;i++){
 //                                s+=","+data[i];
 //                            }
@@ -221,6 +221,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                                 System.arraycopy(fftData, 0, finalData, ampLength, finalLength - ampLength);
                             } else {
                                 Double[] gccData = GCC.gcc(firstKnock, cutData);
+//                                for(int i=0;i<32;i++){
+//                                    s+=","+gccData[i];
+//                                }
+//                                Log.d(TAG, "gcc,"+s);
+//                                s = "";
                                 Double[] fftData = FFT.getHalfFFTData(gccData);
                                 System.arraycopy(gccData, 0, finalData, 0, ampLength);
                                 System.arraycopy(fftData, 0, finalData, ampLength, finalLength - ampLength);

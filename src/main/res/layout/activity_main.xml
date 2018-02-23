@@ -59,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/btn2"
                 android:layout_centerHorizontal="true"
-                android:text="删除一行" />
+                android:text="删除数据库" />
 
             <Button
                 android:id="@+id/btn4"
