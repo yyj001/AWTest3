@@ -20,12 +20,14 @@ public class Cut {
      * @param sPos 开始遍历的位置
      * @param sNumber 找到峰后在前面补的长度
      * @param d 变化量阈值，用来判断峰
+     * @param d2 峰值，用来判断峰
      * @return 返回50个长度
      */
-    public static Double[] cutMoutain(Double[] signal,int finalSize,int sPos,int sNumber,double d){
+    public static Double[] cutMoutain(Double[] signal,int finalSize,int sPos,int sNumber,double d,double d2){
         startPoint = sPos;
         spaceNumber = sNumber;
         deviation = d;
+        deviation2 = d2;
         result = new Double[finalSize];
         for(int i=startPoint;i<signal.length-finalSize;i++){
             if(Math.abs(signal[i])>deviation2 && Math.abs(signal[i]-signal[i-1])>deviation){

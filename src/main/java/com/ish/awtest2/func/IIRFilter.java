@@ -1,5 +1,7 @@
 package com.ish.awtest2.func;
 
+import android.util.Log;
+
 /**
  * Created by chenlin on 16/01/2018.
  */
@@ -58,7 +60,7 @@ public class IIRFilter {
 
             //calculate y based on a and b coefficients
             //and in and out.
-            double y = 0.0;
+            Double y = 0.0;
             for (int j = 0; j < b.length; j++) {
                 if (in[j] != null) {
                     y += b[j] * in[j];
@@ -75,6 +77,7 @@ public class IIRFilter {
             //shift the out array
             System.arraycopy(out, 0, out, 1, out.length - 1);
             out[0] = y;
+            //Log.d("radio", "i" + i + "length" + outData.length);
             outData[i] = y;
         }
         return outData;

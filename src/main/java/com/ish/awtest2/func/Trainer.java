@@ -15,22 +15,22 @@ import java.util.List;
  */
 
 public class Trainer {
-    public static double dentID(){
-        List<KnockData> allDatas = DataSupport.findAll(KnockData.class);
-        Double[][] myData = new Double[allDatas.size()][32];
-        int i = 0;
-        for(KnockData row : allDatas) {
-            myData[i] = row.getAllData();
-            i++;
-        }
+    public static double dentID(Double[][] myData){
+//        List<KnockData> allDatas = DataSupport.findAll(KnockData.class);
+//        Double[][] myData = new Double[allDatas.size()][48];
+//        int i = 0;
+//        for(KnockData row : allDatas) {
+//            myData[i] = row.getAllData();
+//            i++;
+//        }
         Double[] weight = calPower(myData);
         double threshold = getThreshold(myData, weight);
         return threshold;
     }
 
     public static double getNewDis(Double[][] trainData, Double[] testData) {
-        int trainSize = trainData.length; //30
-        int colNum = trainData[0].length; //35
+        int trainSize = trainData.length; //
+        int colNum = trainData[0].length; //48
         Double[] weight = calPower(trainData);
 
         double testProportion = 3; //分3份
@@ -58,8 +58,8 @@ public class Trainer {
     }
 
     public static Double getThreshold(Double[][] trainData, Double[] weight) {
-        int trainSize = trainData.length; //30
-        int colNum = trainData[0].length; //35
+        int trainSize = trainData.length;
+        int colNum = trainData[0].length;
         double testProportion = 3; //分3份
         int testSize = (int) (trainSize / testProportion); //10
         int kflod = (int) testProportion;  //3
