@@ -54,7 +54,6 @@ public class TestActivity extends WearableActivity implements SensorEventListene
 
     private TextView mTextViewCount;
     private Button btn;
-    private Vibrator mVibrator;
 
     private SensorManager sm;
     private double preValue = 0;
@@ -191,7 +190,7 @@ public class TestActivity extends WearableActivity implements SensorEventListene
     public void iniView() {
         tickView = (TickView)findViewById(R.id.tick_view_test);
         fingerImage = (ImageView)findViewById(R.id.finger_image);
-        mVibrator = (Vibrator) getApplication().getSystemService(Service.VIBRATOR_SERVICE);
+        //mVibrator = (Vibrator) getApplication().getSystemService(Service.VIBRATOR_SERVICE);
 
         //慢慢消失动画
         disappearAnimation = new AlphaAnimation(1, 0);

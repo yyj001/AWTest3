@@ -1,4 +1,7 @@
 package com.ish.awtest2.func;
+
+import android.util.Log;
+
 /**
  * Created by ish on 2018/1/24.
  */
@@ -37,6 +40,31 @@ public class Cut {
             }
         }
         System.arraycopy(signal, startPoint-spaceNumber, result, 0, finalSize);
+        return result;
+    }
+
+    public static Double[] cutMoutain2(Double[] signal,int finalSize,int sPos,int sNumber){
+        startPoint = sPos;
+        spaceNumber = sNumber;
+        result = new Double[finalSize];
+        int maxStartPos=startPoint;
+        double maxValue = 0,sumValue = 0;
+        for(int i=startPoint;i<startPoint+finalSize-spaceNumber;i++){
+            maxValue += Math.abs(signal[i]);
+        }
+        for(int i=startPoint+1;i<signal.length-(finalSize-spaceNumber);i++){
+            sumValue = 0;
+            //计算当前32个点的能量；
+            for(int j=i;j<i+finalSize-spaceNumber;j++){
+                sumValue+=Math.abs(signal[j]);
+            }
+            if(sumValue>maxValue){
+                maxValue = sumValue;
+                maxStartPos = i;
+            }
+        }
+        Log.d("pso", "cutMoutain2: " + maxStartPos);
+        System.arraycopy(signal,maxStartPos-spaceNumber,result,0,finalSize);
         return result;
     }
 }

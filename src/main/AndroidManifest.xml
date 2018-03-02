@@ -12,8 +12,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- 在SDCard中创建与删除文件权限 -->
     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
-    <!--振动-->
-    <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- 振动 -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name="org.litepal.LitePalApplication"
@@ -36,16 +36,25 @@
 
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name">
-        </activity>
-        <activity android:name=".TestActivity" >
+            android:label="@string/app_name" />
+        <activity android:name=".TestActivity" />
+        <activity android:name=".Main2Activity" />
+        <activity android:name=".EntryActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Main2Activity"></activity>
+        <activity
+            android:name=".PinCodeMainActivity"
+            android:label="@string/title_activity_pin_code_main">
+        </activity>
+        <activity
+            android:name=".PinCodeTestActivity"
+            android:label="@string/title_activity_pin_code_test">
+
+        </activity>
     </application>
 
 </manifest>

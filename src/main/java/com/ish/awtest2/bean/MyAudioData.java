@@ -19,7 +19,6 @@ public class MyAudioData extends DataSupport {
             audioData = audioData + audioArray[i] + ",";
         }
         audioData = audioData + audioArray[audioArray.length-1];
-        Log.d("kk", "iniData: "+audioData.length());
     }
 
     //字符串转数组

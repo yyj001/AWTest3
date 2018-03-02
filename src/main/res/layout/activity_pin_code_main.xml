@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.wearable.view.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="@dimen/box_inset_layout_padding"
+    tools:context="com.ish.awtest2.PinCodeMainActivity"
+    tools:deviceIds="wear">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="@dimen/inner_frame_layout_padding"
+            app:layout_box="all">
+
+            <TextView
+                android:id="@+id/pincode_text_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="count0"
+                android:textColor="@color/black"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/pincode_text_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/pincode_text_count"
+                android:layout_centerHorizontal="true"
+                android:text="value"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/pincode_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/pincode_text_value"
+                android:layout_centerHorizontal="true"
+                android:text="tip"
+                android:textSize="23sp"
+                android:textColor="@color/black" />
+
+            <Button
+                android:id="@+id/pincode_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/pincode_message"
+                android:layout_centerHorizontal="true"
+                android:text="start" />
+
+            <Button
+                android:id="@+id/pincode_test"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/pincode_start"
+                android:layout_centerHorizontal="true"
+                android:text="test" />
+
+            <Button
+                android:id="@+id/pincode_show_database"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/pincode_test"
+                android:layout_centerHorizontal="true"
+                android:text="show" />
+
+            <Button
+                android:id="@+id/pincode_delete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/pincode_show_database"
+                android:layout_centerHorizontal="true"
+                android:text="delete" />
+
+        </RelativeLayout>
+    </ScrollView>
+
+</android.support.wearable.view.BoxInsetLayout>

@@ -309,7 +309,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     }
 
-    public void deleteOneRow() {
+    private void deleteOneRow() {
         DataSupport.deleteAll(KnockData.class);
         DataSupport.deleteAll(MyAudioData.class);
     }
