@@ -57,7 +57,9 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
     /**
      * 设置队列缓存
      */
-    LimitQueue<Double> queue = new LimitQueue<Double>(limit);
+    LimitQueue<Double> xQueue = new LimitQueue<Double>(limit);
+    LimitQueue<Double> yQueue = new LimitQueue<Double>(limit);
+    LimitQueue<Double> zQueue = new LimitQueue<Double>(limit);
 
     /**
      * flag 按钮判断开始
@@ -70,7 +72,9 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
     /**
      * []data 队列转数组
      */
-    private Double[] data = null;
+    private Double[] datax = null;
+    private Double[] datay = null;
+    private Double[] dataz = null;
     /**
      * deviation 振动改变阈值
      */
@@ -82,14 +86,12 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
     /**
      * firstKnock 记录敲击次数
      */
-    private int ampLength = 32;
-    private int finalLength = 48;
-    private int audioLength = 1024;
-    private int finalAudioLength = 1024;
-    private Double[] firstKnock = new Double[ampLength];
+    private int ampLength = 42;
+    private int finalLength = 192;
+    private Double[] firstKnockx = new Double[ampLength];
+    private Double[] firstKnocky = new Double[ampLength];
+    private Double[] firstKnockz = new Double[ampLength+2];
     private Double[] finalData = new Double[finalLength];
-    private Double[] firstAudioData = new Double[audioLength];
-    private Double[] finalAudioData = new Double[finalAudioLength];
 
     /**
      * 训练距离
@@ -104,8 +106,6 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
     private String s = "";
     //
     private ImageView fingerImage;
-
-    private double newDis1, newDis2;
 
     Handler handler = new Handler();
     Runnable runnable = new Runnable() {
@@ -137,10 +137,14 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER && flag) {
+            double x = sensorEvent.values[0];
+            double y = sensorEvent.values[1];
             double z = sensorEvent.values[2];
             double zChange = z - preValue;
             preValue = z;
-            queue.offer(z);
+            xQueue.offer(x);
+            yQueue.offer(y);
+            zQueue.offer(z);
             count++;
             //mTextView.setText(z + "");
             //判断是否存了200个点
@@ -165,12 +169,20 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
                     flag = false;
                     ifStart2 = false;
                     //队列转数组
-                    data = queue.toArray(new Double[limit]);
+                    datax = xQueue.toArray(new Double[limit]);
+                    datay = yQueue.toArray(new Double[limit]);
+                    dataz = zQueue.toArray(new Double[limit]);
 //                    new Thread(new Runnable() {
 //                        @Override
 //                        public void run() {
-                    data = IIRFilter.highpass(data, IIRFilter.TYPE_AMPITUDE);
-                    data = IIRFilter.lowpass(data, IIRFilter.TYPE_AMPITUDE);
+                    datax = IIRFilter.highpass(datax, IIRFilter.TYPE_AMPITUDE);
+                    datax = IIRFilter.lowpass(datax, IIRFilter.TYPE_AMPITUDE);
+
+                    datay = IIRFilter.highpass(datay, IIRFilter.TYPE_AMPITUDE);
+                    datay = IIRFilter.lowpass(datay, IIRFilter.TYPE_AMPITUDE);
+
+                    dataz = IIRFilter.highpass(dataz, IIRFilter.TYPE_AMPITUDE);
+                    dataz = IIRFilter.lowpass(dataz, IIRFilter.TYPE_AMPITUDE);
 //                    for (int i = 0; i < data.length; i++) {
 //                        s = s + "," + data[i];
 //                    }
@@ -178,15 +190,26 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
 //                    s = "";
 //                    Double[] cutData = Cut.cutMoutain(data, 50);
 
-                    Double[] cutData = new Double[160];
-                    System.arraycopy(data, 40, cutData, 0, 160);
+                    Double[] cutDatax = new Double[160];
+                    Double[] cutDatay = new Double[160];
+                    Double[] cutDataz = new Double[160];
+                    System.arraycopy(datax, 40, cutDatax, 0, 160);
+                    System.arraycopy(datay, 40, cutDatay, 0, 160);
+                    System.arraycopy(dataz, 40, cutDataz, 0, 160);
 
                     //与第一个对齐
-                    Double[] gccData = GCC.gcc(firstKnock, cutData);
+                    Double[] gccDatax = GCC.gcc(firstKnockx, cutDatax);
+                    Double[] gccDatay = GCC.gcc(firstKnocky, cutDatay);
+                    Double[] gccDataz = GCC.gcc(firstKnockz, cutDataz);
+                    Double[] allAmpData = new Double[ampLength*3+2];
+                    System.arraycopy(gccDatax,0,allAmpData,0,ampLength);
+                    System.arraycopy(gccDatay,0,allAmpData,ampLength,ampLength);
+                    System.arraycopy(gccDataz,0,allAmpData,ampLength*2,ampLength+2);
+
                     //加上fft的,得到最终数据
-                    Double[] fftData = FFT.getHalfFFTData(gccData);
-                    System.arraycopy(gccData, 0, finalData, 0, ampLength);
-                    System.arraycopy(fftData, 0, finalData, ampLength, finalLength - ampLength);
+                    Double[] fftData = FFT.getHalfFFTData(allAmpData);
+                    System.arraycopy(allAmpData, 0, finalData, 0, ampLength*3+2);
+                    System.arraycopy(fftData, 0, finalData, ampLength*3+2, finalLength/3);
                     flag = true;
                     key = KNN.judgeDis(trainData,finalData);
                     runOnUiThread(new Runnable() {
@@ -211,12 +234,13 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
             trainData[r] = row.getArray();
             r++;
         }
+        System.arraycopy(trainData[0],0,firstKnockx,0,ampLength);
+        System.arraycopy(trainData[0],ampLength,firstKnocky,0,ampLength);
+        System.arraycopy(trainData[0],ampLength*2,firstKnockz,0,ampLength+2);
 
         btn = (Button) findViewById(R.id.pincode_test_btn);
         mTextViewCount = (TextView) findViewById(R.id.pincode_test_message);
         //初始化第一个来对齐
-        System.arraycopy(trainData[0],0,firstKnock,0,ampLength);
-        firstAudioData = DataSupport.findFirst(MyAudioData.class).getAudioArray();
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override

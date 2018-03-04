@@ -49,6 +49,7 @@
         <activity
             android:name=".PinCodeMainActivity"
             android:label="@string/title_activity_pin_code_main">
+
         </activity>
         <activity
             android:name=".PinCodeTestActivity"

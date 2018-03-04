@@ -46,16 +46,18 @@ public class Cut {
     public static Double[] cutMoutain2(Double[] signal,int finalSize,int sPos,int sNumber){
         startPoint = sPos;
         spaceNumber = sNumber;
+        int realSize = finalSize - spaceNumber;
+        spaceNumber = spaceNumber/2;
         result = new Double[finalSize];
         int maxStartPos=startPoint;
         double maxValue = 0,sumValue = 0;
-        for(int i=startPoint;i<startPoint+finalSize-spaceNumber;i++){
+        for(int i=startPoint;i<startPoint+realSize;i++){
             maxValue += Math.abs(signal[i]);
         }
-        for(int i=startPoint+1;i<signal.length-(finalSize-spaceNumber);i++){
+        for(int i=startPoint+1;i<signal.length-realSize-spaceNumber;i++){
             sumValue = 0;
             //计算当前32个点的能量；
-            for(int j=i;j<i+finalSize-spaceNumber;j++){
+            for(int j=i;j<i+realSize;j++){
                 sumValue+=Math.abs(signal[j]);
             }
             if(sumValue>maxValue){
