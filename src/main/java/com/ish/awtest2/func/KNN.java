@@ -26,33 +26,8 @@ public class KNN{
 				flag = i;
 			}
 		}
-		int relustLabel = flag/testNum;
+		//int relustLabel = flag/testNum;
+		int relustLabel = flag%testNum;
 		return relustLabel+1;
-	}
-
-	public static double judgeDis2(Double[][] trainData,Double[] testData,int key){
-		double sum =0;
-		int testNum = 20;
-		int dataRow = trainData.length;
-		int dataCol = trainData[0].length;
-		Double[][] diffMat = new Double[dataRow][dataCol];
-		Double[] distanceMat = new Double[testNum];
-		for(int k=0,i=(key-1)*testNum ;k<testNum;i++,k++){
-			System.arraycopy(testData, 0, diffMat[i], 0, dataCol);
-			sum = 0;
-			for(int j=0;j<dataCol;j++){
-				diffMat[i][j] = diffMat[i][j]-trainData[i][j];
-				sum += Math.abs(diffMat[i][j]);
-			}
-			distanceMat[k] = sum;
-		}
-
-		double min=distanceMat[0];
-		for(int i=0;i<testNum;i++){
-			if (distanceMat[i] <= min){
-				min = distanceMat[i];
-			}
-		}
-		return min;
 	}
 }
