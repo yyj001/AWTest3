@@ -255,20 +255,20 @@ public class PinCodeMainActivity extends WearableActivity implements SensorEvent
 
                             dataZ = IIRFilter.highpass(dataZ, IIRFilter.TYPE_AMPITUDE);
                             dataZ = IIRFilter.lowpass(dataZ, IIRFilter.TYPE_AMPITUDE);
-                            for(int i=0;i<limit;i++){
-                                s+=","+dataZ[i];
-                            }
-                            Log.d(TAG, "after filter,"+s);
-                            s = "";
+//                            for(int i=0;i<limit;i++){
+//                                s+=","+dataZ[i];
+//                            }
+//                            Log.d(TAG, "after filter,"+s);
+//                            s = "";
                             //3轴之后会很不稳定，spacenumber得设置多一点
                             Double[] cutDatax = Cut.cutMoutain2(dataX, 70, 35, 40);
                             Double[] cutDatay = Cut.cutMoutain2(dataY, 70, 35, 40);
                             Double[] cutDataz = Cut.cutMoutain2(dataZ, 70, 35, 40);
-                            for(int i=0;i<70;i++){
-                                s+=","+cutDataz[i];
-                            }
-                            Log.d(TAG, "after cut,"+s);
-                            s = "";
+//                            for(int i=0;i<70;i++){
+//                                s+=","+cutDataz[i];
+//                            }
+//                            Log.d(TAG, "after cut,"+s);
+//                            s = "";
                             //如果是第一个敲击，记录下来，后面的敲击gcc以它对齐
                             Double[] allAmpData = new Double[ampLength*3+2];
                             if (knockCount == 1) {

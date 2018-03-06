@@ -16,13 +16,6 @@ import java.util.List;
 
 public class Trainer {
     public static double dentID(Double[][] myData){
-//        List<KnockData> allDatas = DataSupport.findAll(KnockData.class);
-//        Double[][] myData = new Double[allDatas.size()][48];
-//        int i = 0;
-//        for(KnockData row : allDatas) {
-//            myData[i] = row.getAllData();
-//            i++;
-//        }
         Double[] weight = calPower(myData);
         double threshold = getThreshold(myData, weight);
         return threshold;

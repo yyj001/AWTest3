@@ -13,21 +13,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <LinearLayout
+            android:id="@+id/circle"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/circle">
+        </LinearLayout>
         <Button
-            android:id="@+id/error_btn"
+            android:id="@+id/full_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_below="@id/circle"
             android:layout_centerHorizontal="true"
-            android:text="stop" />
-
-        <Button
-            android:id="@+id/sucessed_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/error_btn"
-            android:layout_centerHorizontal="true"
-            android:text="start" />
-
+            android:text="draw"/>
     </RelativeLayout>
 
 </android.support.wearable.view.BoxInsetLayout>

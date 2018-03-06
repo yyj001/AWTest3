@@ -16,77 +16,33 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 
 import com.ish.awtest2.mview.TickView;
 
 import static android.media.AudioRecord.READ_NON_BLOCKING;
+import static com.ish.awtest2.R.color.black;
+import static com.ish.awtest2.R.drawable.circle2;
 
 public class Main2Activity extends WearableActivity {
-    private String TAG = "audio";
-    private Button errorBtn, sucessedBtn;
-    private int frequency = 11025;
-    private int channelConfiguration = AudioFormat.CHANNEL_IN_MONO;
-    private int audioEncoding = AudioFormat.ENCODING_PCM_FLOAT;
-    private int bufferSize = AudioRecord.getMinBufferSize(frequency, channelConfiguration, audioEncoding) * 20;
-    private float[] buffer = new float[bufferSize];
-    private AudioRecord audioRecord;
-    private boolean isStart = false;
-    private String s = "";
-    private Handler handler = new Handler();
-    private Runnable runnable = new Runnable() {
-        @RequiresApi(api = Build.VERSION_CODES.M)
-        @Override
-        public void run() {
-        int bufferResultLength = audioRecord.read(buffer, 0, bufferSize,READ_NON_BLOCKING);
-        Log.d(TAG, "run: " + buffer[0]);
-        handler.postDelayed(this, 1000);
-        }
-    };
 
+    private Button btn;
+    private LinearLayout circle;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ActivityCompat.requestPermissions(Main2Activity.this, new String[]{android
                 .Manifest.permission.RECORD_AUDIO}, 1);
         setContentView(R.layout.activity_main2);
-        initData();
+        circle = (LinearLayout)findViewById(R.id.circle);
+        btn = (Button)findViewById(R.id.full_btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                circle.setBackground(getResources().getDrawable(R.drawable.circle2));
+            }
+        });
     }
 
-    private void initData() {
-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                frequency, channelConfiguration, audioEncoding, bufferSize);
-        if (audioRecord == null) {
-            Log.d(TAG, "initData: null");
-        }
-        errorBtn = (Button) findViewById(R.id.error_btn);
-        sucessedBtn = (Button) findViewById(R.id.sucessed_btn);
-        sucessedBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isStart = true;
-                audioRecord.startRecording();
-                handler.postDelayed(runnable, 1);
-            }
-        });
-        errorBtn.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.M)
-            @Override
-            public void onClick(View v) {
-                handler.removeCallbacks(runnable);
-                isStart = false;
-                int bufferResultLength = audioRecord.read(buffer, 0, bufferSize,READ_NON_BLOCKING);
-                audioRecord.stop();
-                Log.d(TAG, "onClick: " + bufferResultLength);
-                int temp = bufferResultLength / 40;
-                for (int i = 0; i < 40; i++) {
-                    for (int j = 0; j < temp; j++) {
-                        s = s + "," + buffer[j + temp* i];
-                    }
-                    Log.d(TAG, "onClick: " + s);
-                    s = "";
-                }
-                Log.d(TAG, "onClick: " + buffer[1]);
-            }
-        });
-    }
+
 }

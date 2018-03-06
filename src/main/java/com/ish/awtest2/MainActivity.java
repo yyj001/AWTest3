@@ -84,7 +84,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     /**
      * 设置队列缓存
      */
-    LimitQueue<Double> queue = new LimitQueue<Double>(limit);
+    LimitQueue<Double> xQueue = new LimitQueue<Double>(limit);
+    LimitQueue<Double> yQueue = new LimitQueue<Double>(limit);
+    LimitQueue<Double> zQueue = new LimitQueue<Double>(limit);
 
     /**
      * flag 按钮判断开始
@@ -97,7 +99,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     /**
      * []data 队列转数组
      */
-    private Double[] data = null;
+    private Double[] datax = null;
+    private Double[] datay = null;
+    private Double[] dataz = null;
     /**
      * deviation 振动改变阈值
      */
@@ -110,16 +114,17 @@ public class MainActivity extends WearableActivity implements SensorEventListene
      * firstKnock 记录敲击次数
      */
     private int ampLength = 32;
-    private int finalLength = 48;
-    private int audioLength = 1024;
-    private int finalAudioLength = 1024;
-    private Double[] firstKnock = new Double[ampLength];
+    private int finalLength = 144;
+//    private int audioLength = 1024;
+//    private int finalAudioLength = 1024;
+    private Double[] firstKnockx = new Double[ampLength];
+    private Double[] firstKnocky = new Double[ampLength];
+    private Double[] firstKnockz = new Double[ampLength];
     private Double[] finalData = new Double[finalLength];
-    private Double[] firstAudioData = new Double[audioLength];
-    private Double[] finalAudioData = new Double[finalAudioLength];
+//    private Double[] firstAudioData = new Double[audioLength];
+//    private Double[] finalAudioData = new Double[finalAudioLength];
 
     private static final String TAG = "sensor";
-    private int colNum = 3400;
     private String s = "";
     /**
      * 音频数据
@@ -144,13 +149,13 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
     };
 
-    class SaveAudioRunnable implements Runnable {
-        @RequiresApi(api = Build.VERSION_CODES.M)
-        @Override
-        public void run() {
-            saveRawAudioData();
-        }
-    }
+//    class SaveAudioRunnable implements Runnable {
+//        @RequiresApi(api = Build.VERSION_CODES.M)
+//        @Override
+//        public void run() {
+//            saveRawAudioData();
+//        }
+//    }
 
 
     //按钮判断开始
@@ -183,10 +188,14 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER && flag) {
+            double x = sensorEvent.values[0];
+            double y = sensorEvent.values[1];
             double z = sensorEvent.values[2];
             double zChange = z - preValue;
             preValue = z;
-            queue.offer(z);
+            xQueue.offer(x);
+            yQueue.offer(y);
+            zQueue.offer(z);
             count++;
             mTextView.setText(z + "");
             //判断是否存了200个点
@@ -194,18 +203,16 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 if (count == limit) {
                     ifStart = true;
                 }
-                //Log.d(TAG, "count: "+ count);
             }
             //等待敲击
             else {
                 //遇到敲击
                 if (zChange > deviation && !ifStart2) {
-                    SaveAudioRunnable myThread = new SaveAudioRunnable();
-                    new Thread(myThread).start();
+//                    SaveAudioRunnable myThread = new SaveAudioRunnable();
+//                    new Thread(myThread).start();
                     ifStart2 = true;
                     count = 0;
                     knockCount++;
-                    //handler.post(saveAudioRunnable);
                 }
             }
             //开始左移100个点
@@ -217,7 +224,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     ifStart2 = false;
                     //队列转数组
                     Toast.makeText(this, "" + knockCount, Toast.LENGTH_SHORT).show();
-                    data = queue.toArray(new Double[limit]);
+                    datax = xQueue.toArray(new Double[limit]);
+                    datay = yQueue.toArray(new Double[limit]);
+                    dataz = zQueue.toArray(new Double[limit]);
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -226,33 +235,58 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 //                            }
 //                            Log.d(TAG, ","+s);
 //                            s = "";
-                            data = IIRFilter.highpass(data, IIRFilter.TYPE_AMPITUDE);
-                            data = IIRFilter.lowpass(data, IIRFilter.TYPE_AMPITUDE);
+                            datax = IIRFilter.highpass(datax, IIRFilter.TYPE_AMPITUDE);
+                            datax = IIRFilter.lowpass(datax, IIRFilter.TYPE_AMPITUDE);
+
+                            datay = IIRFilter.highpass(datay, IIRFilter.TYPE_AMPITUDE);
+                            datay = IIRFilter.lowpass(datay, IIRFilter.TYPE_AMPITUDE);
+
+                            dataz = IIRFilter.highpass(dataz, IIRFilter.TYPE_AMPITUDE);
+                            dataz = IIRFilter.lowpass(dataz, IIRFilter.TYPE_AMPITUDE);
 //                            for(int i=0;i<limit;i++){
 //                                s+=","+data[i];
 //                            }
 //                            Log.d(TAG, "after filter,"+s);
 //                            s = "";
-                            Double[] cutData = Cut.cutMoutain(data, 50, 40, 18, 0.08, 0.25);
+                            Double[] cutDatax = Cut.cutMoutain2(datax, 64, 35, 40);
+                            Double[] cutDatay = Cut.cutMoutain2(datay, 70, 35, 40);
+                            Double[] cutDataz = Cut.cutMoutain2(dataz, 64, 35, 40);
                             //如果是第一个敲击，记录下来，后面的敲击gcc以它对齐
                             if (knockCount == 1) {
-                                System.arraycopy(cutData, 10, firstKnock, 0, ampLength);
-                                Double[] fftData = FFT.getHalfFFTData(firstKnock);
-                                System.arraycopy(firstKnock, 0, finalData, 0, ampLength);
-                                System.arraycopy(fftData, 0, finalData, ampLength, finalLength - ampLength);
+                                System.arraycopy(cutDatax, 18, firstKnockx, 0, ampLength);
+                                System.arraycopy(cutDatay, 18, firstKnocky, 0, ampLength);
+                                System.arraycopy(cutDataz, 18, firstKnockz, 0, ampLength);
+                                Double[] fftDatax = FFT.getHalfFFTData(firstKnockx);
+                                Double[] fftDatay = FFT.getHalfFFTData(firstKnocky);
+                                Double[] fftDataz = FFT.getHalfFFTData(firstKnockz);
+                                System.arraycopy(firstKnockx, 0, finalData, 0, ampLength);
+                                System.arraycopy(firstKnocky, 0, finalData, ampLength, ampLength);
+                                System.arraycopy(firstKnockz, 0, finalData, ampLength*2, ampLength);
+                                System.arraycopy(fftDatax, 0, finalData, ampLength*3, ampLength/2);
+                                System.arraycopy(fftDatay, 0, finalData, ampLength*3+ampLength/2, ampLength/2);
+                                System.arraycopy(fftDataz, 0, finalData, ampLength*4, ampLength/2);
                             } else {
-                                Double[] gccData = GCC.gcc(firstKnock, cutData);
+                                Double[] gccDatax = GCC.gcc(firstKnockx, cutDatax);
+                                Double[] gccDatay = GCC.gcc(firstKnocky, cutDatay);
+                                Double[] gccDataz = GCC.gcc(firstKnockz, cutDataz);
 //                                for(int i=0;i<32;i++){
 //                                    s+=","+gccData[i];
 //                                }
 //                                Log.d(TAG, "gcc,"+s);
 //                                s = "";
-                                Double[] fftData = FFT.getHalfFFTData(gccData);
-                                System.arraycopy(gccData, 0, finalData, 0, ampLength);
-                                System.arraycopy(fftData, 0, finalData, ampLength, finalLength - ampLength);
+                                Double[] fftDatax = FFT.getHalfFFTData(gccDatax);
+                                Double[] fftDatay = FFT.getHalfFFTData(gccDatay);
+                                Double[] fftDataz = FFT.getHalfFFTData(gccDataz);
+
+                                System.arraycopy(gccDatax, 0, finalData, 0, ampLength);
+                                System.arraycopy(gccDatay, 0, finalData, ampLength, ampLength);
+                                System.arraycopy(gccDataz, 0, finalData, ampLength*2, ampLength);
+                                System.arraycopy(fftDatax, 0, finalData, ampLength*3, ampLength/2);
+                                System.arraycopy(fftDatay, 0, finalData, ampLength*3+ampLength/2, ampLength/2);
+                                System.arraycopy(fftDataz, 0, finalData, ampLength*4, ampLength/2);
                             }
                             KnockData knockData = new KnockData();
-                            knockData.initialData(finalData);
+                            knockData.initData(finalData);
                             knockData.saveThrows();
 
                         }
@@ -284,7 +318,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         List<KnockData> allDatas = DataSupport.findAll(KnockData.class);
         Log.d(TAG, "行数: " + allDatas.size());
         for (KnockData row : allDatas) {
-            Double[] rowData = row.getAllData();
+            Double[] rowData = row.getArray();
             String tempStr = "";
             for (int i = 0; i < rowData.length; i++) {
                 tempStr += "," + rowData[i];
@@ -329,8 +363,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 //停止
                 if (flag) {
                     //关闭录音
-                    handler.removeCallbacks(audioRunnable);
-                    audioRecord.stop();
+                    //handler.removeCallbacks(audioRunnable);
+                    //audioRecord.stop();
 
                     ifStart = false;
                     flag = false;
@@ -341,8 +375,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     btn.setText("开始");
                 } else {
                     //开启录音
-                    audioRecord.startRecording();
-                    handler.postDelayed(audioRunnable, 1);
+                    //audioRecord.startRecording();
+                    //handler.postDelayed(audioRunnable, 1);
                     //倒计时
                     handler.postDelayed(runnable, 200);
                     recLen = -1;
@@ -375,7 +409,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 Double[][] myData = new Double[allDatas.size()][finalLength];
                 int i = 0;
                 for (KnockData row : allDatas) {
-                    myData[i] = row.getAllData();
+                    myData[i] = row.getArray();
                     i++;
                 }
                 double threshold = Trainer.dentID(myData);
@@ -385,17 +419,17 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 p.edit().putFloat("threshold", (float) threshold).apply();
 
                 //训练音频
-                List<MyAudioData> allAudioDatas = DataSupport.findAll(MyAudioData.class);
-                Double[][] myAudioData = new Double[allAudioDatas.size()][finalAudioLength];
-                i = 0;
-                for (MyAudioData row : allAudioDatas) {
-                    myAudioData[i] = row.getAudioArray();
-                    i++;
-                }
-                double threshold2 = Trainer.dentID(myAudioData);
-                p.edit().putFloat("threshold2", (float) threshold2).apply();
+//                List<MyAudioData> allAudioDatas = DataSupport.findAll(MyAudioData.class);
+//                Double[][] myAudioData = new Double[allAudioDatas.size()][finalAudioLength];
+//                i = 0;
+//                for (MyAudioData row : allAudioDatas) {
+//                    myAudioData[i] = row.getAudioArray();
+//                    i++;
+//                }
+//                double threshold2 = Trainer.dentID(myAudioData);
+//                p.edit().putFloat("threshold2", (float) threshold2).apply();
                 Log.d(TAG, "onClick: threshold" + threshold);
-                Log.d(TAG, "onClick: threshold2" + threshold2);
+               // Log.d(TAG, "onClick: threshold2" + threshold2);
             }
         });
         btn5.setOnClickListener(new View.OnClickListener() {
@@ -412,72 +446,66 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         });
     }
 
-    public void saveRawAudioData() {
-        handler.removeCallbacks(audioRunnable);
-        bufferResultLength = audioRecord.read(rawAudioData, 0, bufferSize);
-        Log.d(TAG, "onClick: " + bufferResultLength);
-//        int temp = 17920/40;
-//        for (int i = 0; i < 40; i++) {
-//            for (int j = 0; j < temp; j++) {
-//                s = s + "," + rawAudioData[j + temp * i];
-//            }
-//            Log.d(TAG, "radio: " + s);
-//            s = "";
+//    public void saveRawAudioData() {
+//        handler.removeCallbacks(audioRunnable);
+//        bufferResultLength = audioRecord.read(rawAudioData, 0, bufferSize);
+//        Log.d(TAG, "onClick: " + bufferResultLength);
+////        int temp = 17920/40;
+////        for (int i = 0; i < 40; i++) {
+////            for (int j = 0; j < temp; j++) {
+////                s = s + "," + rawAudioData[j + temp * i];
+////            }
+////            Log.d(TAG, "radio: " + s);
+////            s = "";
+////        }
+//        Double[] filterAudioData = new Double[bufferResultLength];
+//        for (int i = 0; i < bufferResultLength; i++) {
+//            filterAudioData[i] = Double.valueOf(rawAudioData[i]);
 //        }
-        Double[] filterAudioData = new Double[bufferResultLength];
-        for (int i = 0; i < bufferResultLength; i++) {
-            filterAudioData[i] = Double.valueOf(rawAudioData[i]);
-        }
-        filterAudioData = Filter.highpass(filterAudioData);
-        filterAudioData = Filter.lowpass(filterAudioData);
-//        int temp = bufferResultLength / 140;
-//        for (int i = 0; i < 140; i++) {
-//            for (int j = 0; j < temp; j++) {
-//                s = s + "," + filterAudioData[j + temp * i];
-//            }
-//            Log.d(TAG, "radio:filter " + s);
-//            s = "";
+//        filterAudioData = Filter.highpass(filterAudioData);
+//        filterAudioData = Filter.lowpass(filterAudioData);
+////        int temp = bufferResultLength / 140;
+////        for (int i = 0; i < 140; i++) {
+////            for (int j = 0; j < temp; j++) {
+////                s = s + "," + filterAudioData[j + temp * i];
+////            }
+////            Log.d(TAG, "radio:filter " + s);
+////            s = "";
+////        }
+//        Double[] cutAudioData = Cut.cutMoutain(filterAudioData, 1500, 2000, 700, 4, 140);
+////        int temp = 1500 / 10;
+////        for (int i = 0; i < 10; i++) {
+////            for (int j = 0; j < temp; j++) {
+////                s = s + "," + cutAudioData[j + temp * i];
+////            }
+////            Log.d(TAG, "radio:filter " + s);
+////            s = "";
+////        }
+//        //如果第一次，记录第一次的敲击声音
+//        //归一化
+////        Double maxAudio = MyMath.findAbsMax(cutAudioData);
+////        for (int i = 0; i < cutAudioData.length; i++) {
+////            cutAudioData[i] /= maxAudio;
+////        }
+//        MyAudioData myAudioData = new MyAudioData();
+//        if (knockCount == 1) {
+//            System.arraycopy(cutAudioData, 1500 - audioLength, firstAudioData, 0, audioLength);
+//            myAudioData.iniData(firstAudioData);
+//
+//        } else {
+//            Double[] gccAudioData = GCC.gcc(firstAudioData, cutAudioData);
+//           myAudioData.iniData(gccAudioData);
 //        }
-        Double[] cutAudioData = Cut.cutMoutain(filterAudioData, 1500, 2000, 700, 4, 140);
-//        int temp = 1500 / 10;
-//        for (int i = 0; i < 10; i++) {
-//            for (int j = 0; j < temp; j++) {
-//                s = s + "," + cutAudioData[j + temp * i];
-//            }
-//            Log.d(TAG, "radio:filter " + s);
-//            s = "";
-//        }
-        //如果第一次，记录第一次的敲击声音
-        //归一化
-//        Double maxAudio = MyMath.findAbsMax(cutAudioData);
-//        for (int i = 0; i < cutAudioData.length; i++) {
-//            cutAudioData[i] /= maxAudio;
-//        }
-        MyAudioData myAudioData = new MyAudioData();
-        if (knockCount == 1) {
-            System.arraycopy(cutAudioData, 1500 - audioLength, firstAudioData, 0, audioLength);
-//            Double[] fftAudioData = FFT.getHalfFFTData(firstAudioData);
-//            System.arraycopy(firstAudioData, 0, finalAudioData, 0, audioLength);
-//            System.arraycopy(fftAudioData, 0, finalAudioData, audioLength, finalAudioLength - audioLength);
-            myAudioData.iniData(firstAudioData);
-
-        } else {
-            Double[] gccAudioData = GCC.gcc(firstAudioData, cutAudioData);
-//            Double[] fftAudioData = FFT.getHalfFFTData(gccAudioData);
-//            System.arraycopy(gccAudioData, 0, finalAudioData, 0, audioLength);
-//            System.arraycopy(fftAudioData, 0, finalAudioData, audioLength, finalAudioLength - audioLength);
-            myAudioData.iniData(gccAudioData);
-        }
-        myAudioData.saveThrows();
-        handler.post(audioRunnable);
-    }
+//        myAudioData.saveThrows();
+//        handler.post(audioRunnable);
+//    }
 
     @Override
     public void onPause() {
         sm.unregisterListener(this);
-        handler.removeCallbacks(audioRunnable);
+//        handler.removeCallbacks(audioRunnable);
         handler.removeCallbacks(runnable);
-        audioRecord.stop();
+        //audioRecord.stop();
         super.onPause();
     }
 }

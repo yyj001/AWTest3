@@ -1,5 +1,6 @@
 package com.ish.awtest2;
 
+import android.app.Service;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -7,6 +8,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.View;
@@ -14,6 +16,7 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,6 +27,7 @@ import com.ish.awtest2.func.GCC;
 import com.ish.awtest2.func.IIRFilter;
 import com.ish.awtest2.func.KNN;
 import com.ish.awtest2.func.LimitQueue;
+import com.ish.awtest2.mview.Circle;
 import com.ish.awtest2.mview.TickView;
 
 import org.litepal.crud.DataSupport;
@@ -34,9 +38,17 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
 
     private TextView mTextViewCount;
     private Button btn;
+    private LinearLayout[] circle = new LinearLayout[4];
+    private int circlestate = 0;
 
     private SensorManager sm;
     private double preValue = 0;
+    private double preValuex = 0;
+    private double preValuey = 0;
+
+    private String password="1234";
+    private String inputString="";
+    private Vibrator mVibrator;
     /**
      * count记录初始队列点的数目
      * count2记录移位点的数目
@@ -78,7 +90,7 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
     /**
      * deviation 振动改变阈值
      */
-    private double deviation = 0.5;
+    private double deviation = 0.4;
     /**
      * knockCount 记录敲击次数
      */
@@ -90,7 +102,7 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
     private int finalLength = 192;
     private Double[] firstKnockx = new Double[ampLength];
     private Double[] firstKnocky = new Double[ampLength];
-    private Double[] firstKnockz = new Double[ampLength+2];
+    private Double[] firstKnockz = new Double[ampLength + 2];
     private Double[] finalData = new Double[finalLength];
 
     /**
@@ -114,15 +126,18 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
             recLen++;
             if (recLen == 1) {
                 mTextViewCount.setText("READY");
-            } else if (recLen > 2) {
+            } else if (recLen == 2) {
                 mTextViewCount.setText("TAP YOUR HAND");
             }
-            handler.postDelayed(this, 2000);
+            if(recLen>=0){
+                handler.postDelayed(this, 2000);
+            }
         }
     };
 
 
-    private int key= 0;
+    private int key = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,7 +156,11 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
             double y = sensorEvent.values[1];
             double z = sensorEvent.values[2];
             double zChange = z - preValue;
+            double xChange = x - preValuex;
+            double yChange = y - preValuey;
             preValue = z;
+            preValuex = x;
+            preValuey = y;
             xQueue.offer(x);
             yQueue.offer(y);
             zQueue.offer(z);
@@ -201,21 +220,39 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
                     Double[] gccDatax = GCC.gcc(firstKnockx, cutDatax);
                     Double[] gccDatay = GCC.gcc(firstKnocky, cutDatay);
                     Double[] gccDataz = GCC.gcc(firstKnockz, cutDataz);
-                    Double[] allAmpData = new Double[ampLength*3+2];
-                    System.arraycopy(gccDatax,0,allAmpData,0,ampLength);
-                    System.arraycopy(gccDatay,0,allAmpData,ampLength,ampLength);
-                    System.arraycopy(gccDataz,0,allAmpData,ampLength*2,ampLength+2);
+                    Double[] allAmpData = new Double[ampLength * 3 + 2];
+                    System.arraycopy(gccDatax, 0, allAmpData, 0, ampLength);
+                    System.arraycopy(gccDatay, 0, allAmpData, ampLength, ampLength);
+                    System.arraycopy(gccDataz, 0, allAmpData, ampLength * 2, ampLength + 2);
 
                     //加上fft的,得到最终数据
                     Double[] fftData = FFT.getHalfFFTData(allAmpData);
-                    System.arraycopy(allAmpData, 0, finalData, 0, ampLength*3+2);
-                    System.arraycopy(fftData, 0, finalData, ampLength*3+2, finalLength/3);
+                    System.arraycopy(allAmpData, 0, finalData, 0, ampLength * 3 + 2);
+                    System.arraycopy(fftData, 0, finalData, ampLength * 3 + 2, finalLength / 3);
                     flag = true;
-                    key = KNN.judgeDis(trainData,finalData);
+                    key = KNN.judgeDis(trainData, finalData);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(PinCodeTestActivity.this, key+"", Toast.LENGTH_SHORT).show();
+                            if(circlestate==0){
+                                clearCircle();
+                            }
+                            inputCircle(circlestate);
+                            circlestate++;
+                            inputString+=key;
+                            mTextViewCount.setText(""+ key);
+                            Log.d(TAG, "run: "+inputString);
+                            //Toast.makeText(PinCodeTestActivity.this, key + "", Toast.LENGTH_SHORT).show();
+                            if(circlestate==4){
+                                if (inputString.equals(password)){
+                                    mTextViewCount.setText("sucessful!");
+                                }else{
+                                    mVibrator.vibrate(new long[]{10, 300}, -1);
+                                    mTextViewCount.setText("try again!");
+                                }
+                                circlestate=0;
+                                inputString="";
+                            }
                         }
                     });
                     Log.d(TAG, "key: " + key);
@@ -226,6 +263,11 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
 
     private void initData() {
         mTextViewCount = (TextView) findViewById(R.id.pincode_test_message);
+        circle[0] = (LinearLayout) findViewById(R.id.circle1);
+        circle[1] = (LinearLayout) findViewById(R.id.circle2);
+        circle[2] = (LinearLayout) findViewById(R.id.circle3);
+        circle[3] = (LinearLayout) findViewById(R.id.circle4);
+        mVibrator = (Vibrator) getApplication().getSystemService(Service.VIBRATOR_SERVICE);
         //取出训练数据
         List<PinCodeKnockData> allDatas = DataSupport.findAll(PinCodeKnockData.class);
         trainData = new Double[allDatas.size()][finalLength];
@@ -234,9 +276,9 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
             trainData[r] = row.getArray();
             r++;
         }
-        System.arraycopy(trainData[0],0,firstKnockx,0,ampLength);
-        System.arraycopy(trainData[0],ampLength,firstKnocky,0,ampLength);
-        System.arraycopy(trainData[0],ampLength*2,firstKnockz,0,ampLength+2);
+        System.arraycopy(trainData[0], 0, firstKnockx, 0, ampLength);
+        System.arraycopy(trainData[0], ampLength, firstKnocky, 0, ampLength);
+        System.arraycopy(trainData[0], ampLength * 2, firstKnockz, 0, ampLength + 2);
 
         btn = (Button) findViewById(R.id.pincode_test_btn);
         mTextViewCount = (TextView) findViewById(R.id.pincode_test_message);
@@ -254,17 +296,29 @@ public class PinCodeTestActivity extends WearableActivity implements SensorEvent
                     handler.removeCallbacks(runnable);
                     mTextViewCount.setText("0");
                     btn.setText("START");
+                    clearCircle();
                 } else {
                     //fingerImage.setVisibility(View.VISIBLE);
                     handler.postDelayed(runnable, 1000);
                     recLen = 0;
                     flag = true;
                     btn.setText("STOP");
-
+                    clearCircle();
                 }
             }
         });
     }
+
+    private void inputCircle(int circleNumber) {
+        circle[circleNumber].setBackground(getResources().getDrawable(R.drawable.circle2));
+    }
+
+    private void clearCircle() {
+        for (int i = 0; i < 4; i++) {
+            circle[i].setBackground(getResources().getDrawable(R.drawable.circle));
+        }
+    }
+
 
     @Override
     protected void onResume() {

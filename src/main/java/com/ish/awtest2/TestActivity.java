@@ -77,7 +77,9 @@ public class TestActivity extends WearableActivity implements SensorEventListene
     /**
      * 设置队列缓存
      */
-    LimitQueue<Double> queue = new LimitQueue<Double>(limit);
+    LimitQueue<Double> xQueue = new LimitQueue<Double>(limit);
+    LimitQueue<Double> yQueue = new LimitQueue<Double>(limit);
+    LimitQueue<Double> zQueue = new LimitQueue<Double>(limit);
 
     /**
      * flag 按钮判断开始
@@ -90,7 +92,9 @@ public class TestActivity extends WearableActivity implements SensorEventListene
     /**
      * []data 队列转数组
      */
-    private Double[] data = null;
+    private Double[] datax = null;
+    private Double[] datay = null;
+    private Double[] dataz = null;
     /**
      * deviation 振动改变阈值
      */
@@ -103,13 +107,15 @@ public class TestActivity extends WearableActivity implements SensorEventListene
      * firstKnock 记录敲击次数
      */
     private int ampLength = 32;
-    private int finalLength = 48;
-    private int audioLength = 1024;
-    private int finalAudioLength = 1024;
-    private Double[] firstKnock = new Double[ampLength];
+    private int finalLength = 144;
+//    private int audioLength = 1024;
+//    private int finalAudioLength = 1024;
+    private Double[] firstKnockx = new Double[ampLength];
+    private Double[] firstKnocky = new Double[ampLength];
+    private Double[] firstKnockz = new Double[ampLength];
     private Double[] finalData = new Double[finalLength];
-    private Double[] firstAudioData = new Double[audioLength];
-    private Double[] finalAudioData = new Double[finalAudioLength];
+//    private Double[] firstAudioData = new Double[audioLength];
+//    private Double[] finalAudioData = new Double[finalAudioLength];
 
     /**
      * 训练距离
@@ -169,13 +175,13 @@ public class TestActivity extends WearableActivity implements SensorEventListene
     };
     private boolean ifsaveAmp = false;
 
-    class SaveAudioRunnable implements Runnable {
-        @RequiresApi(api = Build.VERSION_CODES.M)
-        @Override
-        public void run() {
-            getNewDis2();
-        }
-    }
+//    class SaveAudioRunnable implements Runnable {
+//        @RequiresApi(api = Build.VERSION_CODES.M)
+//        @Override
+//        public void run() {
+//            getNewDis2();
+//        }
+//    }
 
 
     @Override
@@ -210,21 +216,22 @@ public class TestActivity extends WearableActivity implements SensorEventListene
             }
         });
 
-
         btn = (Button) findViewById(R.id.test_btn);
         mTextViewCount = (TextView) findViewById(R.id.test_text_count);
         //初始化第一个来对齐
-        Double[] firstData = DataSupport.findFirst(KnockData.class).getAllData();
-        System.arraycopy(firstData,0,firstKnock,0,ampLength);
-        firstAudioData = DataSupport.findFirst(MyAudioData.class).getAudioArray();
+        Double[] firstData = DataSupport.findFirst(KnockData.class).getArray();
+        System.arraycopy(firstData,0,firstKnockx,0,ampLength);
+        System.arraycopy(firstData,ampLength,firstKnocky,0,ampLength);
+        System.arraycopy(firstData,ampLength*2,firstKnockz,0,ampLength);
+//        firstAudioData = DataSupport.findFirst(MyAudioData.class).getAudioArray();
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //停止
                 if (flag) {
-                    handler.removeCallbacks(audioRunnable);
-                    audioRecord.stop();
+//                    handler.removeCallbacks(audioRunnable);
+//                    audioRecord.stop();
                     ifStart = false;
                     flag = false;
                     count = 0;
@@ -233,8 +240,8 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                     mTextViewCount.setText("0");
                     btn.setText("START");
                 } else {
-                    audioRecord.startRecording();
-                    handler.postDelayed(audioRunnable, 1);
+//                    audioRecord.startRecording();
+//                    handler.postDelayed(audioRunnable, 1);
 
                     fingerImage.setVisibility(View.VISIBLE);
                     handler.postDelayed(runnable, 1000);
@@ -259,26 +266,30 @@ public class TestActivity extends WearableActivity implements SensorEventListene
         trainData = new Double[allDatas.size()][finalLength];
         int r = 0;
         for (KnockData row : allDatas) {
-            trainData[r] = row.getAllData();
+            trainData[r] = row.getArray();
             r++;
         }
         //取出声音训练数据
-        List<MyAudioData> allAudioDatas = DataSupport.findAll(MyAudioData.class);
-        audioTrainData = new Double[allAudioDatas.size()][finalAudioLength];
-        int i = 0;
-        for (MyAudioData row : allAudioDatas) {
-            audioTrainData[i] = row.getAudioArray();
-            i++;
-        }
+//        List<MyAudioData> allAudioDatas = DataSupport.findAll(MyAudioData.class);
+//        audioTrainData = new Double[allAudioDatas.size()][finalAudioLength];
+//        int i = 0;
+//        for (MyAudioData row : allAudioDatas) {
+//            audioTrainData[i] = row.getAudioArray();
+//            i++;
+//        }
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER && flag) {
+            double x = sensorEvent.values[0];
+            double y = sensorEvent.values[1];
             double z = sensorEvent.values[2];
             double zChange = z - preValue;
             preValue = z;
-            queue.offer(z);
+            xQueue.offer(x);
+            yQueue.offer(y);
+            zQueue.offer(z);
             count++;
             //mTextView.setText(z + "");
             //判断是否存了200个点
@@ -291,8 +302,8 @@ public class TestActivity extends WearableActivity implements SensorEventListene
             else {
                 //遇到敲击
                 if (zChange > deviation && !ifStart2&&count>210) {
-                    SaveAudioRunnable myThread = new SaveAudioRunnable();
-                    new Thread(myThread).start();
+                    //SaveAudioRunnable myThread = new SaveAudioRunnable();
+                    //new Thread(myThread).start();
                     ifStart2 = true;
                     count = 0;
                 }
@@ -305,12 +316,18 @@ public class TestActivity extends WearableActivity implements SensorEventListene
                     flag = false;
                     ifStart2 = false;
                     //队列转数组
-                    data = queue.toArray(new Double[limit]);
-//                    new Thread(new Runnable() {
-//                        @Override
-//                        public void run() {
-                    data = IIRFilter.highpass(data,IIRFilter.TYPE_AMPITUDE);
-                    data = IIRFilter.lowpass(data,IIRFilter.TYPE_AMPITUDE);
+                    datax = xQueue.toArray(new Double[limit]);
+                    datay = yQueue.toArray(new Double[limit]);
+                    dataz = zQueue.toArray(new Double[limit]);
+
+                    datax = IIRFilter.highpass(datax,IIRFilter.TYPE_AMPITUDE);
+                    datax = IIRFilter.lowpass(datax,IIRFilter.TYPE_AMPITUDE);
+
+                    datay = IIRFilter.highpass(datay,IIRFilter.TYPE_AMPITUDE);
+                    datay = IIRFilter.lowpass(datay,IIRFilter.TYPE_AMPITUDE);
+
+                    dataz = IIRFilter.highpass(dataz,IIRFilter.TYPE_AMPITUDE);
+                    dataz = IIRFilter.lowpass(dataz,IIRFilter.TYPE_AMPITUDE);
 //                    for (int i = 0; i < data.length; i++) {
 //                        s = s + "," + data[i];
 //                    }
@@ -318,52 +335,64 @@ public class TestActivity extends WearableActivity implements SensorEventListene
 //                    s = "";
 //                    Double[] cutData = Cut.cutMoutain(data, 50);
 
-                    Double[] cutData  = new Double[160];
-                    System.arraycopy(data,40,cutData,0,160);
-                    Double[] gccData = GCC.gcc(firstKnock, cutData);
+                    Double[] cutDatax  = new Double[160];
+                    Double[] cutDatay  = new Double[160];
+                    Double[] cutDataz  = new Double[160];
+                    System.arraycopy(datax,40,cutDatax,0,160);
+                    System.arraycopy(datay,40,cutDatay,0,160);
+                    System.arraycopy(dataz,40,cutDataz,0,160);
+                    Double[] gccDatax = GCC.gcc(firstKnockx, cutDatax);
+                    Double[] gccDatay = GCC.gcc(firstKnocky, cutDatay);
+                    Double[] gccDataz = GCC.gcc(firstKnockz, cutDataz);
 
                     //加上fft的,得到最终数据
-                    Double[] fftData = FFT.getHalfFFTData(gccData);
-                    System.arraycopy(gccData, 0, finalData, 0, ampLength);
-                    System.arraycopy(fftData, 0, finalData, ampLength, finalLength - ampLength);
+                    Double[] fftDatax = FFT.getHalfFFTData(gccDatax);
+                    Double[] fftDatay = FFT.getHalfFFTData(gccDatay);
+                    Double[] fftDataz = FFT.getHalfFFTData(gccDataz);
+                    System.arraycopy(gccDatax, 0, finalData, 0, ampLength);
+                    System.arraycopy(gccDatay, 0, finalData, ampLength, ampLength);
+                    System.arraycopy(gccDataz, 0, finalData, ampLength*2, ampLength);
+                    System.arraycopy(fftDatax, 0, finalData, ampLength*3, ampLength/2);
+                    System.arraycopy(fftDatay, 0, finalData, ampLength*3+ampLength/2, ampLength/2);
+                    System.arraycopy(fftDataz, 0, finalData, ampLength*4, ampLength/2);
 //                    for (int i = 0; i < finalData.length; i++) {
 //                        s = s + "," + finalData[i];
 //                    }
 //                    Log.d(TAG, "onSensorChanged: finalData" + s);
 //                    s = "";
                     //将新的敲击数据加入对比
-//                    double newDis = Trainer.getNewDis(trainData, finalData);
-//                    double newDis2 = Trainer.getNewDis(audioTrainData, finalData);
-//                    Log.d(TAG, "onSensorChanged: " + newDis);
-//
-//
-//                    //隐藏手指，显示动画
-//                    fingerImage.setVisibility(GONE);
-//                    tickView.setAlpha(1);
-//                    //失败
-//                    if (threshold >= newDis) {
-//                        tickView.setType(TickView.TYPE_SUCCESS);
-//                        tickView.setChecked(true);
-//                        mTextViewCount.setText("SUCESSED");
-//                        recLen = 2;
-//                        handler.postDelayed(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                tickView.startAnimation(disappearAnimation);
-//                            }
-//                        },1500);
-//                    } else {
-//                        tickView.setType(TickView.TYPE_ERROR);
-//                        tickView.setChecked(true);
-//                        mTextViewCount.setText("TRY AGAIN");
-//                        recLen = 2;
-//                        handler.postDelayed(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                tickView.startAnimation(disappearAnimation);
-//                            }
-//                        },1500);
-//                    }
+                    double newDis = Trainer.getNewDis(trainData, finalData);
+                    //double newDis2 = Trainer.getNewDis(audioTrainData, finalData);
+                    Log.d(TAG, "onSensorChanged: " + newDis);
+
+
+                    //隐藏手指，显示动画
+                    fingerImage.setVisibility(GONE);
+                    tickView.setAlpha(1);
+                    //失败
+                    if (threshold >= newDis) {
+                        tickView.setType(TickView.TYPE_SUCCESS);
+                        tickView.setChecked(true);
+                        mTextViewCount.setText("SUCESSED");
+                        recLen = 2;
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                tickView.startAnimation(disappearAnimation);
+                            }
+                        },1500);
+                    } else {
+                        tickView.setType(TickView.TYPE_ERROR);
+                        tickView.setChecked(true);
+                        mTextViewCount.setText("TRY AGAIN");
+                        recLen = 2;
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                tickView.startAnimation(disappearAnimation);
+                            }
+                        },1500);
+                    }
                     flag = true;
                     ifsaveAmp = true;
                 }
@@ -371,71 +400,71 @@ public class TestActivity extends WearableActivity implements SensorEventListene
         }
     }
 
-    private void getNewDis2(){
-        handler.removeCallbacks(audioRunnable);
-        bufferResultLength = audioRecord.read(rawAudioData, 0, bufferSize);
-        Log.d(TAG, "onClick: " + bufferResultLength);
-        Double[] filterAudioData = new Double[bufferResultLength];
-        for (int i = 0; i < bufferResultLength; i++) {
-            filterAudioData[i] = Double.valueOf(rawAudioData[i]);
-        }
-        filterAudioData = Filter.highpass(filterAudioData);
-        filterAudioData = Filter.lowpass(filterAudioData);
-        Double[] cutAudioData = Cut.cutMoutain(filterAudioData, 1500, 2000, 700, 4, 140);
-        finalAudioData = GCC.gcc(firstAudioData, cutAudioData);
-        int temp = finalAudioLength / 8;
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < temp; j++) {
-                s = s + "," + finalAudioData[j + temp * i];
-            }
-            Log.d(TAG, "radio: " + s);
-            s = "";
-        }
-        //waitting
-        while(!ifsaveAmp){
-            Log.d(TAG, "waitting...........");
-        }
-        ifsaveAmp = false;
-         newDis1 = Trainer.getNewDis(trainData, finalData);
-         newDis2 = Trainer.getNewDis(audioTrainData, finalData);
-        Log.d(TAG, "dis1: " + newDis1);
-        Log.d(TAG, "dis2: " + newDis2);
-        //隐藏手指，显示动画
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                fingerImage.setVisibility(GONE);
-                tickView.setAlpha(1);
-                //失败
-                if (threshold >= newDis1 && threshold2 >= newDis2) {
-                    tickView.setType(TickView.TYPE_SUCCESS);
-                    tickView.setChecked(true);
-                    mTextViewCount.setText("SUCESSED");
-                    recLen = 2;
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            tickView.startAnimation(disappearAnimation);
-                        }
-                    }, 1500);
-                } else {
-                    tickView.setType(TickView.TYPE_ERROR);
-                    tickView.setChecked(true);
-                    mTextViewCount.setText("TRY AGAIN");
-                    recLen = 2;
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            tickView.startAnimation(disappearAnimation);
-                        }
-                    }, 1500);
-                }
-
-            }
-        });
-
-        handler.post(audioRunnable);
-    }
+//    private void getNewDis2(){
+//        handler.removeCallbacks(audioRunnable);
+//        bufferResultLength = audioRecord.read(rawAudioData, 0, bufferSize);
+//        Log.d(TAG, "onClick: " + bufferResultLength);
+//        Double[] filterAudioData = new Double[bufferResultLength];
+//        for (int i = 0; i < bufferResultLength; i++) {
+//            filterAudioData[i] = Double.valueOf(rawAudioData[i]);
+//        }
+//        filterAudioData = Filter.highpass(filterAudioData);
+//        filterAudioData = Filter.lowpass(filterAudioData);
+//        Double[] cutAudioData = Cut.cutMoutain(filterAudioData, 1500, 2000, 700, 4, 140);
+//        finalAudioData = GCC.gcc(firstAudioData, cutAudioData);
+//        int temp = finalAudioLength / 8;
+//        for (int i = 0; i < 8; i++) {
+//            for (int j = 0; j < temp; j++) {
+//                s = s + "," + finalAudioData[j + temp * i];
+//            }
+//            Log.d(TAG, "radio: " + s);
+//            s = "";
+//        }
+//        //waitting
+//        while(!ifsaveAmp){
+//            Log.d(TAG, "waitting...........");
+//        }
+//        ifsaveAmp = false;
+//         newDis1 = Trainer.getNewDis(trainData, finalData);
+//         newDis2 = Trainer.getNewDis(audioTrainData, finalData);
+//        Log.d(TAG, "dis1: " + newDis1);
+//        Log.d(TAG, "dis2: " + newDis2);
+//        //隐藏手指，显示动画
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                fingerImage.setVisibility(GONE);
+//                tickView.setAlpha(1);
+//                //失败
+//                if (threshold >= newDis1 && threshold2 >= newDis2) {
+//                    tickView.setType(TickView.TYPE_SUCCESS);
+//                    tickView.setChecked(true);
+//                    mTextViewCount.setText("SUCESSED");
+//                    recLen = 2;
+//                    handler.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            tickView.startAnimation(disappearAnimation);
+//                        }
+//                    }, 1500);
+//                } else {
+//                    tickView.setType(TickView.TYPE_ERROR);
+//                    tickView.setChecked(true);
+//                    mTextViewCount.setText("TRY AGAIN");
+//                    recLen = 2;
+//                    handler.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            tickView.startAnimation(disappearAnimation);
+//                        }
+//                    }, 1500);
+//                }
+//
+//            }
+//        });
+//
+//        handler.post(audioRunnable);
+//    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
