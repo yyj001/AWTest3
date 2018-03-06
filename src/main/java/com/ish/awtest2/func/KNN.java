@@ -17,6 +17,7 @@ public class KNN{
 			}
 			distanceMat[i] = sum;
 		}
+		//
 		
 		double min=distanceMat[0];
 		int flag = 0;
